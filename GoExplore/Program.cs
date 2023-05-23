@@ -1,9 +1,27 @@
+using GoExplore.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+
+var ConnectionString = builder.Configuration.GetConnectionString("ConnectionString");
+
+builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(ConnectionString));
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DataContext>();
+    context.Database.EnsureCreated();
+    DataInitializer.Initialize(context);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
